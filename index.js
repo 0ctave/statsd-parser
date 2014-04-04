@@ -9,15 +9,16 @@ var EVENTS = ['stat', 'error', 'end', 'ready'];
 
 var isStatsD =
   //
-  // stat   :value                  |type       |@sample_rate <optional>
+  // stat   :value                  |type       |@sample_rate <optional>    |#tag1,tag2 <optional>
   //
   // Groups:
   //  * stat        : 1
   //  * value       : 2
   //  * type        : 3
   //  * sample_rate : 5
+  //  * tags        : 6
   //
-  /^(.+):([\-+]?[0-9]*\.?[0-9]+)\|(s|g|ms|c)(\|@([\-+]?[0-9]*\.?[0-9]*))?\s*$/;
+  /^(.+):([\-+]?[0-9]*\.?[0-9]+)\|(s|g|ms|c)(\|@([\-+]?[0-9]*\.?[0-9]*))?(?:\|#([a-zA-Z\d\-_:,]+))?\s*$/;
 
 //
 // Remove error and end for event handling
@@ -281,6 +282,10 @@ statsd.matchStatsd = function match(string) {
       stat.sample_rate = m[5];
     }
 
+    if(typeof m[6] === 'string' && m[6] !== '') {
+      stat.tags = m[6].split(',');
+    }
+
     return stat;
   }
   else {
@@ -290,6 +295,17 @@ statsd.matchStatsd = function match(string) {
     return null;
   }
 };
+
+statsd.assemble = function(stat) {
+  var str = stat.stat + ':' + stat.value + '|' + stat.type
+  if (stat.sample_rate) {
+    str += '|@' + stat.sample_rate
+  }
+  if (stat.tags) {
+    str += '|#' + stat.tags.join(',')
+  }
+  return str
+}
 
 //
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ aux ~~
