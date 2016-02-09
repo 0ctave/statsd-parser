@@ -18,7 +18,7 @@ var isStatsD =
   //  * sample_rate : 5
   //  * tags        : 6
   //
-  /^(.+):([\-+]?[0-9]*\.?[0-9]+)\|(s|g|ms|c)(\|@([\-+]?[0-9]*\.?[0-9]*))?(?:\|#([a-zA-Z\d\-_:,]+))?\s*$/;
+  /^(.+):([\-+]?[0-9]*[\.,]?[0-9]+)\|(s|g|ms|c)(\|@([\-+]?[0-9]*\.?[0-9]*))?(?:\|#([a-zA-Z\d\-_:,\.]+))?[\s|\|]*$/;
 
 //
 // Remove error and end for event handling
@@ -277,6 +277,10 @@ statsd.matchStatsd = function match(string) {
       , value : m[2]
       , type  : m[3]
       };
+
+    if(~['c','g','ms'].indexOf(stat.type)) {
+      stat.value = parseFloat(stat.value.replace(/,/g, '.')) || 0
+    }
 
     if(typeof m[5] === 'string' && m[5] !== '') {
       stat.sample_rate = m[5];
